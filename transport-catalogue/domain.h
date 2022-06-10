@@ -7,7 +7,7 @@
 using geo::Coordinates, std::vector, std::string;
 
 namespace domain {
-
+    
     struct Stop {
         string stopname;
         Coordinates coordinates;

@@ -1,7 +1,8 @@
 #include "transport_catalogue.h"
 
-using namespace global;
-using transport_catalogue::Bus, transport_catalogue::Stop;
+using namespace domain;
+using namespace transport_catalogue;
+using namespace geo;
 
 void transport_catalogue::TransportCatalogue::AddStop(string_view stop, Coordinates coordinates) {
     
@@ -11,10 +12,10 @@ void transport_catalogue::TransportCatalogue::AddStop(string_view stop, Coordina
     stop_to_buses_[&(all_stops_.back())];
 }
 
-void transport_catalogue::TransportCatalogue::AddBus(string_view bus, const vector<string>& stops) {
+void transport_catalogue::TransportCatalogue::AddBus(string_view bus, const vector<string>& stops, bool is_roundtrip) {
     
     string bus_name(bus);
-    all_buses_.push_back({bus_name, {}});
+    all_buses_.push_back({bus_name, {}, is_roundtrip});
     all_buses_.back().stops.reserve(stops.size());
     for (const string& stop : stops) {
         all_buses_.back().stops.push_back(stopname_to_stop_[stop]);
@@ -38,26 +39,53 @@ void transport_catalogue::TransportCatalogue::SetDistanceBetweenStops(string_vie
     distances_[{from_ptr, to_ptr}] = distance;
 }
 
-const Stop& global::transport_catalogue::TransportCatalogue::GetStop(string_view stop) const {
+const Stop* transport_catalogue::TransportCatalogue::GetStop(string_view stop) const {
     
-    static Stop empty_stop;
     string stop_name(stop);
     if (stopname_to_stop_.count(stop_name) == 0) {
-        return empty_stop;
+        return nullptr;
     }
-    return *(stopname_to_stop_.at(stop_name));
+    return stopname_to_stop_.at(stop_name);
 }
 
-const Bus& transport_catalogue::TransportCatalogue::GetBus(string_view bus) const {
+const Bus* transport_catalogue::TransportCatalogue::GetBus(string_view bus) const {
     
-    static const Bus empty_bus;
     string bus_name(bus);
-    
     if (busname_to_bus_.count(bus_name) == 0) {
-        return empty_bus;
+        return nullptr;
     }
-    return *(busname_to_bus_.at(bus_name));
+    return busname_to_bus_.at(bus_name);
 }
+
+vector<const Bus*> TransportCatalogue::GetAllBuses() const {
+    
+    set<string> buses_sorted_by_names;
+    std::for_each(all_buses_.begin(), all_buses_.end(), [&] (const Bus& bus) {
+        buses_sorted_by_names.insert(bus.busname);
+    });
+    vector<const Bus*> result(buses_sorted_by_names.size());
+    std::transform(buses_sorted_by_names.begin(), buses_sorted_by_names.end(),
+                   result.begin(), [*this] (const string& busname) {
+        return GetBus(busname);
+    });
+    return result;
+}
+
+vector<const Stop*> TransportCatalogue::GetAllNonEmptyStops() const {
+    
+    set<string> stops_sorted_by_name;
+    std::for_each(all_stops_.begin(), all_stops_.end(), [&] (const Stop& stop) {
+        stops_sorted_by_name.insert(stop.stopname);
+    });
+    vector<const Stop*> result;
+    std::for_each(stops_sorted_by_name.begin(), stops_sorted_by_name.end(), [&] (const string& stopname) {
+        if (!GetBusesForStop(stopname).empty()) {
+           result.push_back(GetStop(stopname));
+        }
+    });
+    return result;
+}
+
 
 const unordered_set<const Bus*> transport_catalogue::TransportCatalogue::GetBusesForStop(string_view stop) const {
     

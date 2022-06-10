@@ -1,6 +1,7 @@
 #pragma once
 
 #include "geo.h"
+#include "domain.h"
 
 #include <iostream>
 #include <string>
@@ -12,34 +13,28 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <cassert>
+#include <algorithm>
 
-using std::string, std::string_view, std::vector, std::deque, std::unordered_map, std::unordered_set, std::cout, std::endl, std::pair, std::map, std::hash;
-using namespace global::geo;
+using geo::Coordinates, domain::Bus, domain::Stop, std::string, std::string_view, std::vector, std::deque, std::unordered_map, std::unordered_set, std::set, std::cout, std::endl, std::pair, std::map, std::hash;
 
-namespace global::transport_catalogue {
-
-struct Stop {
-    string stopname;
-    Coordinates coordinates;
-};
-
-struct Bus {
-    string busname;
-    vector<const Stop*> stops;
-};
+namespace transport_catalogue {
 
 class TransportCatalogue {
 public:
     
     void AddStop(string_view stop, Coordinates coordinates);
     
-    void AddBus(string_view bus, const vector<string>& stops);
+    void AddBus(string_view bus, const vector<string>& stops, bool is_roundtrip);
     
     void SetDistanceBetweenStops(string_view from, string_view to, int distance);
     
-    const Stop& GetStop(string_view stop) const;
+    const Stop* GetStop(string_view stop) const;
     
-    const Bus& GetBus(string_view bus) const;
+    const Bus* GetBus(string_view bus) const;
+    
+    vector<const Bus*> GetAllBuses() const;
+    
+    vector<const Stop*> GetAllNonEmptyStops() const;
     
     const unordered_set<const Bus*> GetBusesForStop(string_view stop) const;
     
@@ -63,7 +58,6 @@ private:
     unordered_map<string, const Bus*> busname_to_bus_;
     unordered_map<const Stop*, unordered_set<const Bus*>> stop_to_buses_;
     unordered_map< pair<const Stop*, const Stop*>, int, Hasher> distances_;
-    
 };
 
-}
+} // namespace transport_catalogue

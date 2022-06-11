@@ -21,9 +21,6 @@ void ReadInputAndProcessRequests(istream& input, TransportCatalogue& transport_c
     ReadRenderSettings(requests.GetRoot().AsMap().at("render_settings").AsMap(), render_settings);
     renderer::MapRenderer map_renderer(render_settings);
     request_handler::RequestHandler request_handler(transport_catalogue, map_renderer);
-
-/*    const svg::Document doc = request_handler.RenderMap();
-    doc.Render(output); */
     
     ProcessStatRequests(requests.GetRoot().AsMap().at("stat_requests").AsArray(), request_handler, output);
     

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "transport_catalogue.h"
-#include "json.h"
+#include "json_builder.h"
 #include "request_handler.h"
 
 #include <iostream>
@@ -29,13 +29,14 @@ namespace json_reader {
 
     svg::Color ReadColor(const Node& underlayer_color_node);
 
-    void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler& request_handler, ostream& output = cout);
-
-    void ProcessStopStat(const string& stopname, map<string, Node>& result, const RequestHandler& request_handler);
-
-    void ProcessBusStat(const string& stopname, map<string, Node>& result, const RequestHandler& request_handler);
-
     void ProcessRenderStat(map<string, Node>& result, const RequestHandler& request_handler);
+
+    void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler& request_handler, ostream& output = cout);
+    
+    pair<string, Node> ProcessStopStat(const string& stopname, const RequestHandler& request_handler);
+
+    optional<vector<Node>> ProcessBusStat(const string& busname, const RequestHandler& request_handler);
+
 
 } // namespace json_reader
 

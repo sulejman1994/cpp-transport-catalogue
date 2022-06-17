@@ -6,7 +6,6 @@ RequestHandler::RequestHandler(const TransportCatalogue& db, const MapRenderer& 
     : db_(db), renderer_(renderer) {
 }
 
-// Возвращает информацию о маршруте (запрос Bus)
 const Bus* RequestHandler::GetBus(string_view bus_name) const {
     return db_.GetBus(bus_name);
 }
@@ -19,7 +18,6 @@ vector<const Stop*> RequestHandler::GetAllNonEmptyStops() const {
     return db_.GetAllNonEmptyStops();
 }
 
-// Возвращает маршруты, проходящие через
 const unordered_set<const Bus*> RequestHandler::GetBusesForStop(string_view stop_name) const {
     return db_.GetBusesForStop(stop_name);
 }

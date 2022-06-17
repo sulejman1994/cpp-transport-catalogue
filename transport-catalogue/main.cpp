@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cassert>
 #include <fstream>
+#include <ctime>
 
 using std::cin, std::cout, std::ifstream, std::ofstream;
 
@@ -22,8 +23,9 @@ namespace renderer {}
 int main() {
     
     ifstream input("input.txt");
+    ofstream output("output.txt");
     transport_catalogue::TransportCatalogue transport_catalogue;
-    json_reader::ReadInputAndProcessRequests(input, transport_catalogue, cout);
+    json_reader::ReadInputAndProcessRequests(input, transport_catalogue, output);
     
     return 0;
 }

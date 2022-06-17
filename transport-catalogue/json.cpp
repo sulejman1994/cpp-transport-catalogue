@@ -349,6 +349,10 @@ Node::Node(nullptr_t)
     : variant_(nullptr) {
 }
 
+Node::Node(Value value)
+    : variant_(move(value)) {
+}
+
 
 bool Node::IsInt() const {
     return holds_alternative<int>(variant_);
@@ -419,6 +423,10 @@ const string& Node::AsString() const {
         throw logic_error("invalid type");
     }
     return get<string>(variant_);
+}
+
+const Node::Value& Node::GetValue() const {
+    return variant_;
 }
 
 bool Node::operator==(const Node& rhs) const {

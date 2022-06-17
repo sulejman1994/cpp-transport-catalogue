@@ -26,7 +26,7 @@ public:
 class Node {
 public:
     
-    using Variant = variant<nullptr_t, int, double, string, bool, Array, Dict>;
+    using Value = variant<nullptr_t, int, double, string, bool, Array, Dict>;
 
     Node();
     Node(Array array);
@@ -36,6 +36,7 @@ public:
     Node(string value);
     Node(bool value);
     Node(nullptr_t);
+    Node(Value value);
         
     bool IsInt() const;
     bool IsDouble() const;
@@ -53,12 +54,14 @@ public:
     bool AsBool() const;
     const string& AsString() const;
     
+    const Value& GetValue() const;
+    
     bool operator==(const Node& rhs) const;
     
     bool operator!=(const Node& rhs) const;
     
 private:
-    Variant variant_;
+    Value variant_;
 };
 
 class Document {

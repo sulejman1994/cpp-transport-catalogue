@@ -1,8 +1,7 @@
 #include "json_reader.h"
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
+
+#include <optional>
+
 using namespace std;
 using namespace geo;
 using namespace json;
@@ -14,7 +13,7 @@ namespace json_reader {
 void ReadInputAndProcessRequests(istream& input, TransportCatalogue& transport_catalogue, ostream& output) {
     
     const json::Document requests = Load(input);
-    
+        
     ProcessBaseRequests(requests.GetRoot().AsMap().at("base_requests").AsArray(), transport_catalogue);
     
     renderer::RenderSettings render_settings;
@@ -107,34 +106,52 @@ Color ReadColor(const Node& color_node) {
 }
 
 void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler& request_handler, ostream& output) {
-  
-    vector<Node> all_results;
+    
+    Builder builder;
+    StartArrayContext context = builder.StartArray();
     for (const Node& request_node : stat_requests) {
         int id = request_node.AsMap().at("id").AsInt();
         const string type = request_node.AsMap().at("type").AsString();
-        map<string, Node> result;
-        result["request_id"] = Node(id);
+        Value_after_key_Context context_second = context.StartDict().Key("request_id").Value(id);
         
         if (type == "Stop") {
-            string name = request_node.AsMap().at("name").AsString();
-            ProcessStopStat(name, result, request_handler);
+            
+            string stopname = request_node.AsMap().at("name").AsString();
+            pair<string, Node> result(ProcessStopStat(stopname, request_handler));
+            context_second.Key(result.first).Value(result.second.GetValue());
+            
         } else if (type == "Bus") {
+            
             string name = request_node.AsMap().at("name").AsString();
-            ProcessBusStat(name, result, request_handler);
+            optional<vector<Node>> result(ProcessBusStat(name, request_handler));
+            if (result) {
+                context_second.Key("route_length"s).Value((*(result))[0].GetValue());
+                context_second.Key("stop_count"s).Value((*(result))[1].GetValue());
+                context_second.Key("curvature").Value((*(result))[2].GetValue());
+                context_second.Key("unique_stop_count").Value((*(result))[3].GetValue());
+            } else {
+                context_second.Key("error_message"s).Value("not found"s);
+            }
+            
         } else if (type == "Map") {
-            ProcessRenderStat(result, request_handler);
+            const svg::Document doc = request_handler.RenderMap();
+            ostringstream stream;
+            doc.Render(stream);
+            context_second.Key("map").Value(stream.str());
         }
-        all_results.push_back(Node(result));
+        
+        context_second.EndDict();
     }
     
-    Print(json::Document(Node(all_results)), output);
+    context.EndArray();
+
+    Print(json::Document(builder.Build()), output);
 }
 
-void ProcessStopStat(const string& stopname, map<string, Node>& result, const RequestHandler& request_handler) {
-   
+pair<string, Node> ProcessStopStat(const string& stopname, const RequestHandler& request_handler) {
+    
     if (!request_handler.IsThereStop(stopname)) {
-        result["error_message"] = Node("not found"s);
-        return;
+        return {"error_message"s, Node("not found"s)};
     }
     set<string> buses;
     for (const Bus* bus : request_handler.GetBusesForStop(stopname)) {
@@ -144,17 +161,15 @@ void ProcessStopStat(const string& stopname, map<string, Node>& result, const Re
     transform(buses.begin(), buses.end(), buses_nodes.begin(), [] (const string& bus) {
         return Node(bus);
     });
-    result["buses"] = Node(buses_nodes);
+    return {"buses"s, Node(move(buses_nodes))};
 }
 
-void ProcessBusStat(const string& stopname, map<string, Node>& result, const RequestHandler& request_handler) {
+optional<vector<Node>> ProcessBusStat(const string& busname, const RequestHandler& request_handler) {
     
-    if (!request_handler.IsThereBus(stopname)) {
-        result["error_message"] = Node("not found"s);
-        return;
+    if (!request_handler.IsThereBus(busname)) {
+        return {};
     }
-    
-    const Bus* bus = request_handler.GetBus(stopname);
+    const Bus* bus = request_handler.GetBus(busname);
     int stop_count = (int) bus->stops.size();
     
     int length = 0;
@@ -175,23 +190,11 @@ void ProcessBusStat(const string& stopname, map<string, Node>& result, const Req
         geo_length *= 2;
     }
     
-    result["route_length"] = Node(length);
-    result["stop_count"] = Node(stop_count);
-    
     double curvature = length * 1.0 / geo_length;
-    result["curvature"] = Node(curvature * 1.0);
-    
     unordered_set<const Stop*> unique_stops({bus->stops.begin(), bus->stops.end()});
-    result["unique_stop_count"] = Node(int(unique_stops.size()));
+    int unique_stops_count = (int) unique_stops.size();
+    vector<Node> result = {length, stop_count, curvature, unique_stops_count};
+    return optional(result);
 }
-
-void ProcessRenderStat(map<string, Node>& result, const RequestHandler& request_handler) {
-    
-    const svg::Document doc = request_handler.RenderMap();
-    ostringstream stream;
-    doc.Render(stream);
-    result["map"] = Node(stream.str());
-}
-
 
 } // namespace json_reader

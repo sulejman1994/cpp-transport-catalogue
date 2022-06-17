@@ -84,7 +84,7 @@ void MapRenderer::RenderRouteNames(const vector<BusPtr>& buses, const SphereProj
         Text substrate;
         substrate.SetPosition(projector(bus->stops[0]->coordinates));
         substrate.SetOffset(render_settings_.bus_label_offset);
-        substrate.SetFontSize(render_settings_.bus_label_font_size);
+        substrate.SetFontSize((int) render_settings_.bus_label_font_size);
         const string font_family = "Verdana";
         substrate.SetFontFamily(font_family);
         const string font_weight = "bold";

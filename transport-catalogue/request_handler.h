@@ -10,7 +10,7 @@
 // с другими подсистемами приложения.
 // См. паттерн проектирования Фасад: https://ru.wikipedia.org/wiki/Фасад_(шаблон_проектирования)
 
-using transport_catalogue::TransportCatalogue, renderer::MapRenderer, std::string, std::unordered_set, std::set;
+using transport_catalogue::TransportCatalogue, transport_catalogue::BusPtr, transport_catalogue::StopPtr, renderer::MapRenderer, std::string, std::unordered_set, std::set;
 
 namespace request_handler {
 
@@ -19,13 +19,13 @@ public:
 
     RequestHandler(const TransportCatalogue& db, const MapRenderer& renderer);
 
-    const Bus* GetBus(string_view bus_name) const;
+    BusPtr GetBus(string_view bus_name) const;
     
-    vector<const Bus*> GetAllBuses() const;
+    vector<BusPtr> GetAllBuses() const;
     
-    vector<const Stop*> GetAllNonEmptyStops() const;
+    vector<StopPtr> GetAllNonEmptyStops() const;
 
-    const unordered_set<const Bus*> GetBusesForStop(string_view stop_name) const;
+    const unordered_set<BusPtr> GetBusesForStop(string_view stop_name) const;
     
     bool IsThereBus(string_view bus_name) const;
     

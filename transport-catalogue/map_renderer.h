@@ -77,7 +77,7 @@ public:
 private:
     RenderSettings render_settings_;
     
-    void CalcAllStopsCoordinates(const vector<BusPtr>& buses, vector<Coordinates>& all_stop_coords) const;
+    void CalcAllStopsCoordinates(const vector<BusPtr>& buses, vector<geo::Coordinates>& all_stop_coords) const;
     
     void RenderRoutes(const vector<BusPtr>& buses, const SphereProjector& projector, svg::Document& doc) const;
     

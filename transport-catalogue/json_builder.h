@@ -11,8 +11,6 @@ class Context;
 class KeyContext;
 class StartDictContext;
 class StartArrayContext;
-class Value_after_key_Context;
-class Value_in_array_Context;
 
 class Builder {
 public:
@@ -37,6 +35,8 @@ private:
     bool is_prev_key = false;
     bool is_built_ = false;
     stack<Node::Value> included_values_;
+    
+    void PushEmptyArrayOrDict(const Node::Value& value);
 };
 
 class Context {
@@ -53,21 +53,11 @@ public:
     KeyContext(Builder& builder) : Context(builder) {
     }
     
-    Value_after_key_Context Value(const Node::Value& value);
+    StartDictContext Value(const Node::Value& value);
     
     StartArrayContext StartArray();
     
     StartDictContext StartDict();
-};
-
-class Value_after_key_Context : public Context {
-public:
-    Value_after_key_Context(Builder& builder) : Context(builder) {
-    }
-    
-    KeyContext Key(const string& key);
-    
-    Builder& EndDict();
 };
 
 class StartDictContext : public Context {
@@ -85,7 +75,7 @@ public:
     StartArrayContext(Builder& builder) : Context(builder) {
     }
     
-    Value_in_array_Context Value(const Node::Value& value);
+    StartArrayContext Value(const Node::Value& value);
     
     StartArrayContext StartArray();
     
@@ -94,19 +84,6 @@ public:
     Builder& EndArray();
 };
 
-class Value_in_array_Context : public Context {
-public:                                         
-    Value_in_array_Context(Builder& builder) : Context(builder) {
-    }
-    
-    Value_in_array_Context Value(const Node::Value& value);
-    
-    Builder& EndArray();
-    
-    StartArrayContext StartArray();
-    
-    StartDictContext StartDict();
-};
 
 } // namespace json
 

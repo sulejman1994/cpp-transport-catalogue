@@ -4,6 +4,7 @@ using namespace domain;
 using namespace renderer;
 using namespace svg;
 using namespace std;
+using namespace geo;
 
 namespace renderer {
 
@@ -89,7 +90,7 @@ void MapRenderer::RenderRouteNames(const vector<BusPtr>& buses, const SphereProj
         substrate.SetFontFamily(font_family);
         const string font_weight = "bold";
         substrate.SetFontWeight(font_weight);
-        substrate.SetData(bus->busname);
+        substrate.SetData(bus->name);
         
         Text text = substrate;
         
@@ -136,7 +137,7 @@ void MapRenderer::RenderStopNames(const vector<StopPtr>& stops, const SphereProj
         substrate.SetFontSize(render_settings_.stop_label_font_size);
         const string font_family = "Verdana";
         substrate.SetFontFamily(font_family);
-        substrate.SetData(stop->stopname);
+        substrate.SetData(stop->name);
         
         Text text = substrate;
         

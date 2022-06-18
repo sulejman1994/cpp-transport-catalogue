@@ -2,9 +2,9 @@
 
 namespace json {
 
-Value_after_key_Context KeyContext::Value(const Node::Value& value) {
+StartDictContext KeyContext::Value(const Node::Value& value) {
     builder_.Value(value);
-    return Value_after_key_Context(builder_);
+    return StartDictContext(builder_);
 }
 
 StartArrayContext KeyContext::StartArray() {
@@ -17,15 +17,6 @@ StartDictContext KeyContext::StartDict() {
     return StartDictContext(builder_);
 }
 
-KeyContext Value_after_key_Context::Key(const string& key) {
-    builder_.Key(key);
-    return KeyContext(builder_);
-}
-
-Builder& Value_after_key_Context::EndDict() {
-    return builder_.EndDict();
-}
-
 KeyContext StartDictContext::Key(const string& key) {
     builder_.Key(key);
     return KeyContext(builder_);
@@ -35,9 +26,9 @@ Builder& StartDictContext::EndDict() {
     return builder_.EndDict();
 }
 
-Value_in_array_Context StartArrayContext::Value(const Node::Value& value) {
+StartArrayContext StartArrayContext::Value(const Node::Value& value) {
     builder_.Value(value);
-    return Value_in_array_Context(builder_);
+    return StartArrayContext(builder_);
 }
 
 StartArrayContext StartArrayContext::StartArray() {
@@ -54,35 +45,17 @@ Builder& StartArrayContext::EndArray() {
     return builder_.EndArray();
 }
 
-Value_in_array_Context Value_in_array_Context::Value(const Node::Value& value) {
-    builder_.Value(value);
-    return Value_in_array_Context(builder_);
-}
-
-Builder& Value_in_array_Context::EndArray() {
-    return builder_.EndArray();
-}
-
-StartArrayContext Value_in_array_Context::StartArray() {
-    builder_.StartArray();
-    return StartArrayContext(builder_);
-}
-
-StartDictContext Value_in_array_Context::StartDict() {
-    builder_.StartDict();
-    return StartDictContext(builder_);
-}
 
 KeyContext Builder::Key(const string& key) {
     if (is_built_) {
-        throw logic_error("");
+        throw logic_error("expected building");
     }
     
     if (is_prev_key) {
-        throw logic_error("");
+        throw logic_error("expected value");
     }
     if (included_values_.empty() || !holds_alternative<Dict> (included_values_.top())) {
-        throw logic_error("");
+        throw logic_error("not a dict");
     }
     is_prev_key = true;
     keys_.push(key);
@@ -91,7 +64,7 @@ KeyContext Builder::Key(const string& key) {
 
 Builder& Builder::Value(const Node::Value& value) {
     if (is_built_) {
-        throw logic_error("");
+        throw logic_error("expected building");
     }
     
     is_prev_key = false;
@@ -106,49 +79,35 @@ Builder& Builder::Value(const Node::Value& value) {
     }
     if (holds_alternative<Dict> (included_values_.top())) {
         if (keys_.empty()) {
-            throw logic_error("");
+            throw logic_error("expected key");
         }
         (get<Dict> (included_values_.top()))[keys_.top()] = Node(value);
         keys_.pop();
         is_prev_key = false;
         return *this;
     }
-    throw logic_error("");
+    throw logic_error("invalid command");
 }
 
 StartDictContext Builder::StartDict() {
-    if (is_built_) {
-        throw logic_error("");
-    }
-    if (!included_values_.empty() && !is_prev_key && !holds_alternative<Array>(included_values_.top()))  {
-        throw logic_error("");
-    }
-    is_prev_key = false;
-    included_values_.push(Dict());
+    PushEmptyArrayOrDict(Dict());
     return StartDictContext(*this);
 }
 
 StartArrayContext Builder::StartArray() {
-    if (is_built_) {
-        throw logic_error("");
-    }
-    if (!included_values_.empty() && !is_prev_key && !holds_alternative<Array>(included_values_.top()))  {
-        throw logic_error("");
-    }
-    is_prev_key = false;
-    included_values_.push(Array());
+    PushEmptyArrayOrDict(Array());
     return StartArrayContext(*this);
 }
 
 Builder& Builder::EndDict() {
     if (is_built_) {
-        throw logic_error("");
+        throw logic_error("expected building");
     }
     if (included_values_.empty() || !holds_alternative<Dict> (included_values_.top())) {
-        throw logic_error("");
+        throw logic_error("not dict");
     }
     if (is_prev_key) {
-        throw logic_error("");
+        throw logic_error("expected value");
     }
     Node::Value dict = included_values_.top();
     included_values_.pop();
@@ -158,10 +117,10 @@ Builder& Builder::EndDict() {
 
 Builder& Builder::EndArray() {
     if (is_built_) {
-        throw logic_error("");
+        throw logic_error("expected building");
     }
     if (included_values_.empty() || !holds_alternative<Array> (included_values_.top())) {
-        throw logic_error("");
+        throw logic_error("not array");
     }
     Node::Value array = included_values_.top();
     included_values_.pop();
@@ -173,7 +132,18 @@ Node Builder::Build() {
     if (is_built_) {
         return Node(value_);
     }
-    throw logic_error("");
+    throw logic_error("has not built yet");
+}
+
+void Builder::PushEmptyArrayOrDict(const Node::Value& value) {
+    if (is_built_) {
+        throw logic_error("expected building");
+    }
+    if (!included_values_.empty() && !is_prev_key && !holds_alternative<Array>(included_values_.top()))  {
+        throw logic_error("invalid command");
+    }
+    is_prev_key = false;
+    included_values_.push(value);
 }
 
 } // namespace json

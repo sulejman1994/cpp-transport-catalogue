@@ -1,24 +1,25 @@
 #include "request_handler.h"
 
 using namespace request_handler;
+using namespace transport_catalogue;
 
 RequestHandler::RequestHandler(const TransportCatalogue& db, const MapRenderer& renderer)
     : db_(db), renderer_(renderer) {
 }
 
-const Bus* RequestHandler::GetBus(string_view bus_name) const {
+BusPtr RequestHandler::GetBus(string_view bus_name) const {
     return db_.GetBus(bus_name);
 }
 
-vector<const Bus*> RequestHandler::GetAllBuses() const {
+vector<BusPtr> RequestHandler::GetAllBuses() const {
     return db_.GetAllBuses();
 }
 
-vector<const Stop*> RequestHandler::GetAllNonEmptyStops() const {
+vector<StopPtr> RequestHandler::GetAllNonEmptyStops() const {
     return db_.GetAllNonEmptyStops();
 }
 
-const unordered_set<const Bus*> RequestHandler::GetBusesForStop(string_view stop_name) const {
+const unordered_set<BusPtr> RequestHandler::GetBusesForStop(string_view stop_name) const {
     return db_.GetBusesForStop(stop_name);
 }
 

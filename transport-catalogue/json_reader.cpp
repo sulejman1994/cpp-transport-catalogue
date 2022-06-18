@@ -112,7 +112,7 @@ void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler
     for (const Node& request_node : stat_requests) {
         int id = request_node.AsMap().at("id").AsInt();
         const string type = request_node.AsMap().at("type").AsString();
-        Value_after_key_Context context_second = context.StartDict().Key("request_id").Value(id);
+        StartDictContext context_second = context.StartDict().Key("request_id").Value(id);
         
         if (type == "Stop") {
             
@@ -155,7 +155,7 @@ pair<string, Node> ProcessStopStat(const string& stopname, const RequestHandler&
     }
     set<string> buses;
     for (const Bus* bus : request_handler.GetBusesForStop(stopname)) {
-        buses.insert(bus->busname);
+        buses.insert(bus->name);
     }
     vector<Node> buses_nodes(buses.size());
     transform(buses.begin(), buses.end(), buses_nodes.begin(), [] (const string& bus) {
@@ -178,10 +178,10 @@ optional<vector<Node>> ProcessBusStat(const string& busname, const RequestHandle
     for (int i = 1; i < stop_count; ++i) {
         const Stop* prev_stop = bus->stops[i - 1];
         const Stop* cur_stop = bus->stops[i];
-        length += request_handler.GetDistanceBetweenStops(prev_stop->stopname, cur_stop->stopname);
+        length += request_handler.GetDistanceBetweenStops(prev_stop->name, cur_stop->name);
         geo_length += ComputeDistance(prev_stop->coordinates, cur_stop->coordinates);
         if (!bus->is_roundtrip) {
-            length += request_handler.GetDistanceBetweenStops(cur_stop->stopname, prev_stop->stopname);
+            length += request_handler.GetDistanceBetweenStops(cur_stop->name, prev_stop->name);
         }
     }
     

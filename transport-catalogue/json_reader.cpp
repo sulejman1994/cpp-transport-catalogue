@@ -163,7 +163,6 @@ void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler
             if (route) {
                 context_second.Key("total_time").Value(route->weight);
                 vector<Node> items = CalcRouteItems(route->edges, request_handler.GetRouter().GetGraph(), request_handler.GetRouter().GetIdToVertex());
-                
                 context_second.Key("items").Value(items);
             } else {
                 context_second.Key("error_message").Value("not found");

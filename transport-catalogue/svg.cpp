@@ -3,7 +3,7 @@
 #include <map>
 #include <utility>
 
-using std::map, std::make_unique, std::endl;
+using namespace std;
 
 namespace svg {
 

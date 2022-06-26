@@ -3,7 +3,6 @@
 #include "json.h"
 #include <optional>
 #include <stack>
-using std::string, std::optional, std::stack, std::logic_error, std::holds_alternative, std::get;
 
 namespace json {
 
@@ -15,7 +14,7 @@ class StartArrayContext;
 class Builder {
 public:
     
-    KeyContext Key(const string& key);
+    KeyContext Key(const std::string& key);
     
     Builder& Value(const Node::Value& value);
     
@@ -31,10 +30,10 @@ public:
     
 private:
     Node::Value value_;
-    stack<string> keys_;
+    std::stack<std::string> keys_;
     bool is_prev_key = false;
     bool is_built_ = false;
-    stack<Node::Value> included_values_;
+    std::stack<Node::Value> included_values_;
     
     void PushEmptyArrayOrDict(const Node::Value& value);
 };
@@ -65,7 +64,7 @@ public:
     StartDictContext(Builder& builder) : Context(builder) {
     }
     
-    KeyContext Key(const string& key);
+    KeyContext Key(const std::string& key);
     
     Builder& EndDict();
 };

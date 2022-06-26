@@ -1,12 +1,15 @@
 #include "json_reader.h"
 
 #include <optional>
+#include <fstream>
 
 using namespace std;
 using namespace geo;
 using namespace json;
 using namespace svg;
 using namespace renderer;
+using namespace graph;
+using namespace domain;
 
 namespace json_reader {
 
@@ -19,7 +22,10 @@ void ReadInputAndProcessRequests(istream& input, TransportCatalogue& transport_c
     renderer::RenderSettings render_settings;
     ReadRenderSettings(requests.GetRoot().AsMap().at("render_settings").AsMap(), render_settings);
     renderer::MapRenderer map_renderer(render_settings);
-    request_handler::RequestHandler request_handler(transport_catalogue, map_renderer);
+    
+    ReadRoutingSettings(requests.GetRoot().AsMap().at("routing_settings").AsMap(), transport_catalogue);
+    transport_catalogue::TransportRouter router(transport_catalogue);
+    request_handler::RequestHandler request_handler(transport_catalogue, map_renderer, router);
     
     ProcessStatRequests(requests.GetRoot().AsMap().at("stat_requests").AsArray(), request_handler, output);
     
@@ -68,6 +74,12 @@ void ProcessBus(const map<string, Node>& bus, TransportCatalogue& transport_cata
     transport_catalogue.AddBus(busname, stops, is_roundtrip);
 }
 
+void ReadRoutingSettings(const map<string, Node>& routing_settings, TransportCatalogue& transport_catalogue) {
+    transport_catalogue.SetBusWaitTime(routing_settings.at("bus_wait_time").AsInt());
+    transport_catalogue.SetBusVelocity(routing_settings.at("bus_velocity").AsInt());
+}
+
+
 void ReadRenderSettings(const map<string, Node>& settings, renderer::RenderSettings& render_settings) {
     render_settings.width = settings.at("width").AsDouble();
     render_settings.height = settings.at("height").AsDouble();
@@ -109,6 +121,8 @@ void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler
     
     Builder builder;
     StartArrayContext context = builder.StartArray();
+    
+    
     for (const Node& request_node : stat_requests) {
         int id = request_node.AsMap().at("id").AsInt();
         const string type = request_node.AsMap().at("type").AsString();
@@ -134,12 +148,28 @@ void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler
             }
             
         } else if (type == "Map") {
+            
             const svg::Document doc = request_handler.RenderMap();
             ostringstream stream;
             doc.Render(stream);
             context_second.Key("map").Value(stream.str());
+            
+        } else if (type == "Route") {
+            
+            string from = request_node.AsMap().at("from").AsString();
+            string to = request_node.AsMap().at("to").AsString();
+            
+            auto route = request_handler.BuildRoute(from, to);
+            if (route) {
+                context_second.Key("total_time").Value(route->weight);
+                vector<Node> items = CalcRouteItems(route->edges, request_handler.GetRouter().GetGraph(), request_handler.GetRouter().GetIdToVertex());
+                
+                context_second.Key("items").Value(items);
+            } else {
+                context_second.Key("error_message").Value("not found");
+            }
+            
         }
-        
         context_second.EndDict();
     }
     
@@ -147,6 +177,28 @@ void ProcessStatRequests(const vector<Node>& stat_requests, const RequestHandler
 
     Print(json::Document(builder.Build()), output);
 }
+
+vector<Node> CalcRouteItems(const vector<EdgeId>& edges, const DirectedWeightedGraph<double>& graph, const vector<TransportRouter::Vertex>& id_to_vertex) {
+    
+    vector<Node> result;
+    result.reserve(edges.size());
+    for (EdgeId edge_id : edges) {
+        Edge edge = graph.GetEdge(edge_id);
+        map<string, Node> res;
+        res["time"s] = Node(edge.weight);
+        if (edge.stop_count == 0) {
+            res["type"s] = Node("Wait"s);
+            res["stop_name"s] = Node(id_to_vertex[edge.from].stopname);
+        } else {
+            res["type"s] = Node("Bus"s);
+            res["span_count"s] = Node((int) edge.stop_count);
+            res["bus"s] = Node(edge.busname);
+        }
+        result.push_back(res);
+    }
+    return result;
+}
+
 
 pair<string, Node> ProcessStopStat(const string& stopname, const RequestHandler& request_handler) {
     

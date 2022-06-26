@@ -40,6 +40,14 @@ void TransportCatalogue::SetDistanceBetweenStops(string_view from, string_view t
     distances_[{from_ptr, to_ptr}] = distance;
 }
 
+void TransportCatalogue::SetBusWaitTime(size_t bus_wait_time) {
+    bus_wait_time_ = bus_wait_time;
+}
+
+void TransportCatalogue::SetBusVelocity(size_t bus_velocity) {
+    bus_velocity_ = bus_velocity;
+}
+
 StopPtr TransportCatalogue::GetStop(string_view stop) const {
     
     string stop_name(stop);
@@ -72,6 +80,16 @@ vector<BusPtr> TransportCatalogue::GetAllBuses() const {
     return result;
 }
 
+vector<StopPtr> TransportCatalogue::GetAllStops() const {
+    
+    vector<StopPtr> result;
+    result.reserve(all_stops_.size());
+    std::for_each(all_stops_.begin(), all_stops_.end(), [&] (const Stop& stop) {
+        result.push_back(&stop);
+    });
+    return result;
+}
+
 vector<StopPtr> TransportCatalogue::GetAllNonEmptyStops() const {
     
     set<string> stops_sorted_by_name;
@@ -85,6 +103,10 @@ vector<StopPtr> TransportCatalogue::GetAllNonEmptyStops() const {
         }
     });
     return result;
+}
+
+pair<int, int> TransportCatalogue::GetWaitTimeAndVelocity() const {
+    return {bus_wait_time_, bus_velocity_};
 }
 
 

@@ -10,8 +10,6 @@
 #include <optional>
 #include <vector>
 
-using domain::Bus, domain::Stop;
-
 namespace renderer {
 
 class MapRenderer;
@@ -58,36 +56,36 @@ struct RenderSettings {
     svg::Point stop_label_offset;
     svg::Color underlayer_color;
     double underlayer_width;
-    vector<svg::Color> color_palette;
+    std::vector<svg::Color> color_palette;
 };
 
 
 class MapRenderer {
 public:
     
-    using BusPtr = const Bus*;
-    using StopPtr = const Stop*;
+    using BusPtr = const domain::Bus*;
+    using StopPtr = const domain::Stop*;
     
     MapRenderer(const RenderSettings& render_settings);
     
-    svg::Document Render(const vector<BusPtr>& buses, const vector<StopPtr>& stops) const;
+    svg::Document Render(const std::vector<BusPtr>& buses, const std::vector<StopPtr>& stops) const;
     
     void SetRenderSettings(const RenderSettings& render_settings);
     
 private:
     RenderSettings render_settings_;
     
-    void CalcAllStopsCoordinates(const vector<BusPtr>& buses, vector<geo::Coordinates>& all_stop_coords) const;
+    void CalcAllStopsCoordinates(const std::vector<BusPtr>& buses, std::vector<geo::Coordinates>& all_stop_coords) const;
     
-    void RenderRoutes(const vector<BusPtr>& buses, const SphereProjector& projector, svg::Document& doc) const;
+    void RenderRoutes(const std::vector<BusPtr>& buses, const SphereProjector& projector, svg::Document& doc) const;
     
-    void RenderOneRoute(const vector<StopPtr>& stops, const SphereProjector& projector, svg::Polyline& route, bool is_roundtrip) const;
+    void RenderOneRoute(const std::vector<StopPtr>& stops, const SphereProjector& projector, svg::Polyline& route, bool is_roundtrip) const;
     
-    void RenderRouteNames(const vector<BusPtr>& buses, const SphereProjector& projector, svg::Document& doc) const;
+    void RenderRouteNames(const std::vector<BusPtr>& buses, const SphereProjector& projector, svg::Document& doc) const;
     
-    void RenderStops(const vector<StopPtr>& stops, const SphereProjector& projector, svg::Document& doc) const;
+    void RenderStops(const std::vector<StopPtr>& stops, const SphereProjector& projector, svg::Document& doc) const;
     
-    void RenderStopNames(const vector<StopPtr>& stops, const SphereProjector& projector, svg::Document& doc) const;
+    void RenderStopNames(const std::vector<StopPtr>& stops, const SphereProjector& projector, svg::Document& doc) const;
 
 };
 

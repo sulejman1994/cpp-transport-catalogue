@@ -7,18 +7,16 @@
 #include <vector>
 #include <variant>
 
-using std::map, std::set, std::string, std::vector, std::variant, std::ostream, std::istream, std::runtime_error, std::nullptr_t;
-
 namespace json {
 
-const set<char> escape_symbols = {'\n', '\t', '\r'};
+const std::set<char> escape_symbols = {'\n', '\t', '\r'};
 
 class Node;
 
-using Dict = map<string, Node>;
-using Array = vector<Node>;
+using Dict = std::map<std::string, Node>;
+using Array = std::vector<Node>;
 
-class ParsingError : public runtime_error {
+class ParsingError : public std::runtime_error {
 public:
     using runtime_error::runtime_error;
 };
@@ -26,14 +24,14 @@ public:
 class Node {
 public:
     
-    using Value = variant<nullptr_t, int, double, string, bool, Array, Dict>;
+    using Value = std::variant<nullptr_t, int, double, std::string, bool, Array, Dict>;
 
     Node();
     Node(Array array);
     Node(Dict map);
     Node(double value);
     Node(int value);
-    Node(string value);
+    Node(std::string value);
     Node(bool value);
     Node(nullptr_t);
     Node(Value value);
@@ -52,7 +50,7 @@ public:
     double AsDouble() const;
     int AsInt() const;
     bool AsBool() const;
-    const string& AsString() const;
+    const std::string& AsString() const;
     
     const Value& GetValue() const;
     
@@ -78,11 +76,11 @@ private:
     Node root_;
 };
 
-Document Load(istream& input);
+Document Load(std::istream& input);
 
-void PrintString(const string& str, ostream& output);
+void PrintString(const std::string& str, std::ostream& output);
 
-void Print(const Document& doc, ostream& output);
+void Print(const Document& doc, std::ostream& output);
 
 }  // namespace json
 

@@ -10,8 +10,6 @@
 #include <map>
 #include <variant>
 
-using std::vector, std::string, std::unique_ptr, std::make_unique, std::move, std::optional, std::map, std::ostream, std::variant, std::monostate, std::visit;
-
 namespace svg {
 
 struct Point {
@@ -72,7 +70,7 @@ private:
     
 class ObjectContainer {
 public:
-    virtual void AddPtr(unique_ptr<Object>&& obj) = 0;
+    virtual void AddPtr(std::unique_ptr<Object>&& obj) = 0;
     
     template <typename Obj>
     void Add(Obj obj);
@@ -109,18 +107,18 @@ struct Rgba : Rgb {
 
 
 
-using Color = variant<monostate, string, Rgb, Rgba>;
+using Color = std::variant<std::monostate, std::string, Rgb, Rgba>;
 
-inline const string NoneColor("none");
+inline const std::string NoneColor("none");
 
 
 struct Visitor {
-    ostream& out;
+    std::ostream& out;
     
-    void operator() (monostate) const {
+    void operator() (std::monostate) const {
         out << NoneColor;
     }
-    void operator() (string color) const {
+    void operator() (std::string color) const {
         out << color;
     }
     void operator() (Rgb rgb) const {
@@ -131,7 +129,7 @@ struct Visitor {
     }
 };
 
-ostream& operator << (ostream& out, Color color);
+std::ostream& operator << (std::ostream& out, Color color);
 
 enum class StrokeLineCap {
     BUTT,
@@ -139,9 +137,9 @@ enum class StrokeLineCap {
     SQUARE,
 };
 
-const map<StrokeLineCap, string> strokelinecap_to_string = {{StrokeLineCap::BUTT, "butt"}, {StrokeLineCap::ROUND, "round"}, {StrokeLineCap::SQUARE, "square"}};
+const std::map<StrokeLineCap, std::string> strokelinecap_to_string = {{StrokeLineCap::BUTT, "butt"}, {StrokeLineCap::ROUND, "round"}, {StrokeLineCap::SQUARE, "square"}};
 
-ostream& operator << (ostream& out, const StrokeLineCap& stroke_linecap);
+std::ostream& operator << (std::ostream& out, const StrokeLineCap& stroke_linecap);
 
 enum class StrokeLineJoin {
     ARCS,
@@ -151,9 +149,9 @@ enum class StrokeLineJoin {
     ROUND,
 };
 
-const map<StrokeLineJoin, string> strokelinejoin_to_string = {{StrokeLineJoin::ARCS, "arcs"}, {StrokeLineJoin::BEVEL, "bevel"},{StrokeLineJoin::MITER, "miter"}, {StrokeLineJoin::MITER_CLIP, "miter-clip"}, {StrokeLineJoin::ROUND, "round"}};
+const std::map<StrokeLineJoin, std::string> strokelinejoin_to_string = {{StrokeLineJoin::ARCS, "arcs"}, {StrokeLineJoin::BEVEL, "bevel"},{StrokeLineJoin::MITER, "miter"}, {StrokeLineJoin::MITER_CLIP, "miter-clip"}, {StrokeLineJoin::ROUND, "round"}};
 
-ostream& operator << (ostream& out, const StrokeLineJoin& stroke_linejoin);
+std::ostream& operator << (std::ostream& out, const StrokeLineJoin& stroke_linejoin);
 
 template <typename Owner>
 class PathProps {
@@ -174,12 +172,12 @@ public:
     }
     
     Owner& SetStrokeLineCap(StrokeLineCap line_cap) {
-        stroke_linecap_ = move(line_cap);
+        stroke_linecap_ = std::move(line_cap);
         return AsOwner();
     }
     
     Owner& SetStrokeLineJoin(StrokeLineJoin line_join) {
-        stroke_linejoin_ = move(line_join);
+        stroke_linejoin_ = std::move(line_join);
         return AsOwner();
     }
     
@@ -189,11 +187,11 @@ protected:
     void RenderAttrs(std::ostream& out) const;
     
 private:
-    optional<Color> fill_color_;
-    optional<Color> stroke_color_;
-    optional<double> stroke_width_;
-    optional<StrokeLineCap> stroke_linecap_;
-    optional<StrokeLineJoin> stroke_linejoin_;
+    std::optional<Color> fill_color_;
+    std::optional<Color> stroke_color_;
+    std::optional<double> stroke_width_;
+    std::optional<StrokeLineCap> stroke_linecap_;
+    std::optional<StrokeLineJoin> stroke_linejoin_;
     
     Owner& AsOwner() {
         return static_cast<Owner&>(*this);
@@ -247,7 +245,7 @@ public:
 private:
     void RenderObject(const RenderContext& context) const override;
     
-    vector<Point> points_;
+    std::vector<Point> points_;
 };
 
 /*
@@ -280,9 +278,9 @@ private:
     Point pos_;
     Point offset_;
     size_t font_size_ = 1;
-    string font_weight_;
-    string font_family_;
-    string data_;
+    std::string font_weight_;
+    std::string font_family_;
+    std::string data_;
 };
 
 class Document : public ObjectContainer {
@@ -293,12 +291,12 @@ public:
     void Render(std::ostream& out) const;
 
 private:
-    vector<unique_ptr<Object>> objects_;
+    std::vector<std::unique_ptr<Object>> objects_;
 };
     
 template <typename Obj>
 void ObjectContainer::Add(Obj obj) {
-    auto ptr = make_unique<Obj> (move(obj));
+    auto ptr = std::make_unique<Obj> (std::move(obj));
     AddPtr(move(ptr));
 }
 

@@ -1,5 +1,7 @@
 #include "json_builder.h"
 
+using namespace std;
+
 namespace json {
 
 StartDictContext KeyContext::Value(const Node::Value& value) {

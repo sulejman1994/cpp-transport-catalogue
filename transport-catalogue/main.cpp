@@ -8,7 +8,7 @@
 #include <fstream>
 #include <ctime>
 
-using std::cin, std::cout, std::ifstream, std::ofstream;
+using namespace std;
 
 namespace domain {}
 namespace geo {}
@@ -18,14 +18,17 @@ namespace json_reader {}
 namespace request_handler {}
 namespace svg {}
 namespace renderer {}
+namespace graph {}
+namespace ranges {}
 
 
 int main() {
-    
-    ifstream input("input.txt");
-    ofstream output("output.txt");
+    cin.tie(0);
+    ios_base::sync_with_stdio(false);
+  //  ifstream input("input.txt");
+   // ofstream output("output.txt");
     transport_catalogue::TransportCatalogue transport_catalogue;
-    json_reader::ReadInputAndProcessRequests(input, transport_catalogue, output);
+    json_reader::ReadInputAndProcessRequests(cin, transport_catalogue, cout);
     
     return 0;
 }

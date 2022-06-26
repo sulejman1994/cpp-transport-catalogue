@@ -17,43 +17,49 @@
 
 namespace transport_catalogue {
 
-using domain::Bus, domain::Stop, std::string, std::string_view, std::vector, std::deque, std::unordered_map, std::unordered_set, std::set, std::pair;
-
+using domain::Bus, domain::Stop;
 using BusPtr = const domain::Bus*;
 using StopPtr = const domain::Stop*;
 
 class TransportCatalogue {
 public:
         
-    void AddStop(string_view stop, const geo::Coordinates& coordinates);
-    void AddBus(string_view bus, const vector<string>& stops, bool is_roundtrip);
+    void AddStop(std::string_view stop, const geo::Coordinates& coordinates);
+    void AddBus(std::string_view bus, const std::vector<std::string>& stops, bool is_roundtrip);
     
-    void SetDistanceBetweenStops(string_view from, string_view to, int distance);
+    void SetDistanceBetweenStops(std::string_view from, std::string_view to, int distance);
     
-    StopPtr GetStop(string_view stop) const;
-    BusPtr GetBus(string_view bus) const;
-    vector<BusPtr> GetAllBuses() const;
-    vector<StopPtr> GetAllNonEmptyStops() const;
-    const unordered_set<BusPtr> GetBusesForStop(string_view stop) const;
-    int GetDistanceBetweenStops(string_view from, string_view to) const;
+    void SetBusWaitTime(size_t bus_wait_time);
+    void SetBusVelocity(size_t bus_velocity);
     
-    bool IsThereStop(string_view stop) const;
-    bool IsThereBus(string_view bus) const;
+    StopPtr GetStop(std::string_view stop) const;
+    BusPtr GetBus(std::string_view bus) const;
+    std::vector<BusPtr> GetAllBuses() const;
+    std::vector<StopPtr> GetAllStops() const;
+    std::vector<StopPtr> GetAllNonEmptyStops() const;
+    std::pair<int, int> GetWaitTimeAndVelocity() const;
+    const std::unordered_set<BusPtr> GetBusesForStop(std::string_view stop) const;
+    int GetDistanceBetweenStops(std::string_view from, std::string_view to) const;
+    
+    bool IsThereStop(std::string_view stop) const;
+    bool IsThereBus(std::string_view bus) const;
     
     struct Hasher {
-        size_t operator() (const pair<StopPtr, StopPtr>& key) const {
+        size_t operator() (const std::pair<StopPtr, StopPtr>& key) const {
             const int p = 37;
             return std::hash<StopPtr>() (key.first) + p * std::hash<StopPtr>() (key.second);
         }
     };
     
 private:
-    deque<Stop> all_stops_;
-    deque<Bus> all_buses_;
-    unordered_map<string, StopPtr> stopname_to_stop_;
-    unordered_map<string, BusPtr> busname_to_bus_;
-    unordered_map<StopPtr, unordered_set<BusPtr>> stop_to_buses_;
-    unordered_map< pair<StopPtr, StopPtr>, int, Hasher> distances_;
+    std::deque<Stop> all_stops_;
+    std::deque<Bus> all_buses_;
+    std::unordered_map<std::string, StopPtr> stopname_to_stop_;
+    std::unordered_map<std::string, BusPtr> busname_to_bus_;
+    std::unordered_map<StopPtr, std::unordered_set<BusPtr>> stop_to_buses_;
+    std::unordered_map< std::pair<StopPtr, StopPtr>, int, Hasher> distances_;
+    size_t bus_wait_time_ = 0;
+    size_t bus_velocity_ = 40;
 };
 
 } // namespace transport_catalogue

@@ -23,10 +23,9 @@ namespace ranges {}
 
 
 int main() {
-    cin.tie(0);
-    ios_base::sync_with_stdio(false);
-  //  ifstream input("input.txt");
-   // ofstream output("output.txt");
+    
+    ifstream input("input.txt");
+    ofstream output("output.txt");
     transport_catalogue::TransportCatalogue transport_catalogue;
     json_reader::ReadInputAndProcessRequests(cin, transport_catalogue, cout);
     

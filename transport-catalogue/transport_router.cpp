@@ -14,7 +14,7 @@ TransportRouter::TransportRouter(const TransportCatalogue& transport_catalogue)
 optional<graph::Router<double>::RouteInfo> TransportRouter::BuildRoute(string_view from, string_view to) const {
     if (!is_graph_built_) {
         BuildGraph();
-        router_ = new Router(graph_);
+        router_ = make_unique<Router<double>> (graph_);
         is_graph_built_ = true;
     }
     Vertex vertex_from{string(from), true}, vertex_to{string(to), true};
@@ -35,16 +35,20 @@ void TransportRouter::BuildGraph() const {
     graph_ = DirectedWeightedGraph<double> (2 * all_stops.size());
     
     id_to_vertex_.reserve(2 * all_stops.size());
-    for (const StopPtr& stop : all_stops) { // сопоставляем номера вершин с остановками
-        vertex_to_id_[{stop->name, true}] = id_to_vertex_.size();
-        id_to_vertex_.push_back({stop->name, true});
-        vertex_to_id_[{stop->name, false}] = id_to_vertex_.size();
-        id_to_vertex_.push_back({stop->name, false});
-    }
+    AddVertexes(all_stops);
     
     vector<BusPtr> all_buses(transport_catalogue_.GetAllBuses());
     for (const BusPtr& bus : all_buses) { 
         AddEdgesForBus(bus);
+    }
+}
+    
+void TransportRouter::AddVertexes(const vector<StopPtr>& all_stops) const {
+    for (const StopPtr& stop : all_stops) { 
+        vertex_to_id_[{stop->name, true}] = id_to_vertex_.size();
+        id_to_vertex_.push_back({stop->name, true});
+        vertex_to_id_[{stop->name, false}] = id_to_vertex_.size();
+        id_to_vertex_.push_back({stop->name, false});
     }
 }
 

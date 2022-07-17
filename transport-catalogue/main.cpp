@@ -27,7 +27,7 @@ int main() {
     ifstream input("input.txt");
     ofstream output("output.txt");
     transport_catalogue::TransportCatalogue transport_catalogue;
-    json_reader::ReadInputAndProcessRequests(cin, transport_catalogue, cout);
+    json_reader::ReadInputAndProcessRequests(input, transport_catalogue, output);
    
     return 0;
 }

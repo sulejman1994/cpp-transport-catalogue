@@ -12,11 +12,46 @@ bool IsZero(double value) {
     return std::abs(value) < EPSILON;
 }
 
-
-MapRenderer::MapRenderer(const RenderSettings& render_settings)
+MapRenderer::MapRenderer(const renderer::RenderSettings& render_settings)
     : render_settings_(render_settings) {
 }
 
+MapRenderer::MapRenderer(const serialization::RenderSettings& render_settings) {
+    render_settings_.width = render_settings.width();
+    render_settings_.height = render_settings.height();
+    render_settings_.padding = render_settings.padding();
+    render_settings_.line_width = render_settings.line_width();
+    render_settings_.stop_radius = render_settings.stop_radius();
+    render_settings_.bus_label_font_size = render_settings.bus_label_font_size();
+    render_settings_.stop_label_font_size = render_settings.stop_label_font_size();
+    render_settings_.underlayer_width = render_settings.underlayer_width();
+    
+    render_settings_.bus_label_offset = {render_settings.bus_label_offset().x(), render_settings.bus_label_offset().y()};
+    render_settings_.stop_label_offset = {render_settings.stop_label_offset().x(), render_settings.stop_label_offset().y()};
+    
+    render_settings_.underlayer_color = ReadSerializedColor(render_settings.underlayer_color());
+    
+    for (size_t i = 0; i < render_settings.color_palette_size(); ++i) {
+        render_settings_.color_palette.push_back(ReadSerializedColor(render_settings.color_palette(i)));
+    }
+}
+                                                 
+svg::Color MapRenderer::ReadSerializedColor(const serialization::Color& color) {
+    svg::Color result;
+    if (color.color_string().size() > 0) {
+        return Color(color.color_string());
+    }
+    int red, green, blue;
+    red = color.color_rgb(0);
+    green = color.color_rgb(1);
+    blue = color.color_rgb(2);
+    if (color.is_rgb()) {
+        return Rgb(red, green, blue);
+    }
+    double opasity = color.opasity();
+    return Rgba(red, green, blue, opasity);
+}
+                                                 
 svg::Document MapRenderer::Render(const vector<BusPtr>& buses, const vector<StopPtr>& stops) const {
     
     vector<Coordinates> all_stop_coords;
@@ -31,6 +66,8 @@ svg::Document MapRenderer::Render(const vector<BusPtr>& buses, const vector<Stop
     RenderStopNames(stops, projector, doc);
     return doc;
 }
+                                                 
+                                                 
 
 
 void MapRenderer::RenderRoutes(const vector<BusPtr>& buses, const SphereProjector& projector, svg::Document& doc) const {
@@ -172,3 +209,4 @@ void MapRenderer::CalcAllStopsCoordinates(const vector<BusPtr>& buses, vector<Co
 }
 
 } // namespace renderer
+

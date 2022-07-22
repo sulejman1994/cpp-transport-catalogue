@@ -3,12 +3,16 @@
 #include "domain.h"
 #include "geo.h"
 #include "svg.h"
+#include "serialization.h"
 
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <optional>
 #include <vector>
+
+using RenderSettingsSerialized = serialization::RenderSettings;
+using ColorSerialized = serialization::Color;
 
 namespace renderer {
 
@@ -66,7 +70,8 @@ public:
     using BusPtr = const domain::Bus*;
     using StopPtr = const domain::Stop*;
     
-    MapRenderer(const RenderSettings& render_settings);
+    MapRenderer(const renderer::RenderSettings& render_settings);
+    MapRenderer(const serialization::RenderSettings& render_settings);
     
     svg::Document Render(const std::vector<BusPtr>& buses, const std::vector<StopPtr>& stops) const;
     
@@ -86,7 +91,8 @@ private:
     void RenderStops(const std::vector<StopPtr>& stops, const SphereProjector& projector, svg::Document& doc) const;
     
     void RenderStopNames(const std::vector<StopPtr>& stops, const SphereProjector& projector, svg::Document& doc) const;
-
+    
+    static svg::Color ReadSerializedColor(const serialization::Color& color);
 };
 
 
@@ -140,3 +146,4 @@ SphereProjector::SphereProjector(PointInputIt points_begin, PointInputIt points_
 }
 
 } // namespace renderer
+

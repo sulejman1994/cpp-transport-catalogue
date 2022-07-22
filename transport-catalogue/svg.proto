@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package serialization;
+
+message Color {
+    string color_string = 1;
+    bool is_rgb = 2;
+    repeated uint32 color_rgb = 3;
+    double opasity = 4;
+}
+
+message Point {
+    double x = 1;
+    double y = 2;
+}
+

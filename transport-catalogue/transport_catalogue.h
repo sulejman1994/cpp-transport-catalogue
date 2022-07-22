@@ -2,6 +2,7 @@
 
 #include "geo.h"
 #include "domain.h"
+#include "transport_catalogue.pb.h"
 
 #include <iostream>
 #include <string>
@@ -23,7 +24,10 @@ using StopPtr = const domain::Stop*;
 
 class TransportCatalogue {
 public:
-        
+    TransportCatalogue() = default;
+    
+    TransportCatalogue(const serialization::TransportCatalogue& tr_ser);
+    
     void AddStop(std::string_view stop, const geo::Coordinates& coordinates);
     void AddBus(std::string_view bus, const std::vector<std::string>& stops, bool is_roundtrip);
     
@@ -63,3 +67,4 @@ private:
 };
 
 } // namespace transport_catalogue
+

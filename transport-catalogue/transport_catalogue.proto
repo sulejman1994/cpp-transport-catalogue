@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "map_renderer.proto";
+import "graph.proto";
+import "transport_router.proto";
+
+package serialization;
+
+message Coordinates {
+    double lat = 1;
+    double lng = 2;
+}
+
+message Stop {
+    string name = 1;
+    Coordinates coordinates = 2;
+}
+
+message Bus {
+    string name = 1;
+    repeated uint32 stop_index = 2;
+    bool is_roundtrip = 3;
+}
+
+message FromToDistance {
+    uint32 from = 1;
+    uint32 to = 2;
+    uint32 distance = 3; 
+}
+
+
+message TransportCatalogue {
+    repeated Stop stop = 1;
+    repeated Bus bus = 2;
+    repeated FromToDistance from_to_distance = 3;
+    RenderSettings render_settings = 4;
+    uint32 bus_wait_time = 7;
+    uint32 bus_velocity = 8; 
+    Router router = 9;
+    repeated Vertex id_to_vertex = 10;
+}

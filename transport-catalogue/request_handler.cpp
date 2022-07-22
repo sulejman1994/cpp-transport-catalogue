@@ -55,3 +55,46 @@ int RequestHandler::GetDistanceBetweenStops(string_view from, string_view to) co
 svg::Document RequestHandler::RenderMap() const {
     return renderer_.Render(GetAllBuses(), GetAllNonEmptyStops());
 }
+
+optional<vector<string>> RequestHandler::ProcessStopRequest(const string& stopname) const {
+    if (!IsThereStop(stopname)) {
+        return nullopt;
+    }
+    set<string> buses;
+    for (const Bus* bus : GetBusesForStop(stopname)) {
+        buses.insert(bus->name);
+    }
+    return {{buses.begin(), buses.end()}};
+}
+
+optional<BusRequestResult> RequestHandler::ProcessBusRequest(const std::string& busname) const {
+    if (!IsThereBus(busname)) {
+        return nullopt;
+    }
+    const Bus* bus = GetBus(busname);
+    size_t stop_count = bus->stops.size();
+    
+    size_t length = 0;
+    double geo_length = 0;
+        
+    for (int i = 1; i < stop_count; ++i) {
+        const Stop* prev_stop = bus->stops[i - 1];
+        const Stop* cur_stop = bus->stops[i];
+        length += GetDistanceBetweenStops(prev_stop->name, cur_stop->name);
+        geo_length += ComputeDistance(prev_stop->coordinates, cur_stop->coordinates);
+        if (!bus->is_roundtrip) {
+            length += GetDistanceBetweenStops(cur_stop->name, prev_stop->name);
+        }
+    }
+    
+    if (!bus->is_roundtrip) {
+        stop_count = stop_count * 2 - 1;
+        geo_length *= 2;
+    }
+    
+    double curvature = length * 1.0 / geo_length;
+    unordered_set<const Stop*> unique_stops({bus->stops.begin(), bus->stops.end()});
+    size_t unique_stops_count = unique_stops.size();
+    return {{length, stop_count, curvature, unique_stops_count}};
+}
+

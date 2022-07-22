@@ -64,6 +64,8 @@ private:
 
 class Document {
 public:
+    
+    Document() = default;
     explicit Document(Node root);
 
     const Node& GetRoot() const;
@@ -83,4 +85,5 @@ void PrintString(const std::string& str, std::ostream& output);
 void Print(const Document& doc, std::ostream& output);
 
 }  // namespace json
+
 

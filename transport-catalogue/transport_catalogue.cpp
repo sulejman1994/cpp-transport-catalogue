@@ -5,6 +5,30 @@ using namespace transport_catalogue;
 using namespace geo;
 using namespace std;
 
+TransportCatalogue::TransportCatalogue(const serialization::TransportCatalogue& tr_ser) {
+    
+    vector<Stop> all_stops;
+    for (size_t i = 0; i < tr_ser.stop_size(); ++i) {
+        all_stops.push_back({tr_ser.stop(i).name(), {tr_ser.stop(i).coordinates().lat(), tr_ser.stop(i).coordinates().lng()} });
+        AddStop(all_stops.back().name, all_stops.back().coordinates);
+    }
+    
+    for (size_t i = 0; i < tr_ser.from_to_distance_size(); ++i) {
+        SetDistanceBetweenStops(all_stops[tr_ser.from_to_distance(i).from()].name, all_stops[tr_ser.from_to_distance(i).to()].name, tr_ser.from_to_distance(i).distance());
+    }
+    
+    for (size_t i = 0; i < tr_ser.bus_size(); ++i) {
+        vector<string> stops;
+        for (size_t k = 0; k < tr_ser.bus(i).stop_index_size(); ++k) {
+            stops.push_back(all_stops[tr_ser.bus(i).stop_index(k)].name);
+        }
+        AddBus(tr_ser.bus(i).name(), stops, tr_ser.bus(i).is_roundtrip());
+    }
+    
+    bus_wait_time_ = tr_ser.bus_wait_time();
+    bus_velocity_ = tr_ser.bus_velocity();
+}
+
 void TransportCatalogue::AddStop(string_view stop, const Coordinates& coordinates) {
     
     string stop_name(stop);
@@ -140,5 +164,6 @@ bool TransportCatalogue::IsThereStop(string_view stop) const {
 bool TransportCatalogue::IsThereBus(string_view bus) const {
     return busname_to_bus_.count(string(bus));
 }
+
 
 

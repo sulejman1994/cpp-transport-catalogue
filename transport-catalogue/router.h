@@ -16,12 +16,32 @@ namespace graph {
 
 template <typename Weight>
 class Router {
-private:
-    using Graph = DirectedWeightedGraph<Weight>;
-
 public:
+    
+    struct RouteInternalData {
+        Weight weight = -1.0;
+        std::optional<EdgeId> prev_edge;
+        
+        bool operator == (const RouteInternalData& other) const {
+            static const double EPSILON = 1e-6;
+            return std::abs(weight - other.weight) < EPSILON &&
+                prev_edge == other.prev_edge;
+        }
+        bool operator != (const RouteInternalData& other) const {
+            return !(*this == other);
+        }
+    };
+    
+    using Graph = DirectedWeightedGraph<Weight>;
+    using RoutesInternalData = std::vector<std::vector<std::optional<RouteInternalData>>>;
+    
     explicit Router(const Graph& graph);
-
+    
+    Router(const Graph& graph, const RoutesInternalData& route_internal_data)
+        : graph_(graph), routes_internal_data_(route_internal_data)
+    {
+    }
+    
     struct RouteInfo {
         Weight weight;
         std::vector<EdgeId> edges;
@@ -32,13 +52,20 @@ public:
     const Graph& GetGraph() const {
         return graph_;
     }
+    
+    const RoutesInternalData& GetRoutesInternalData() const {
+        return routes_internal_data_;
+    }
+    
+    bool operator == (const Router& other) const {
+        return graph_ == other.graph_ && routes_internal_data_ == other.routes_internal_data_;
+    }
+    
+    bool operator != (const Router& other) const {
+        return !(*this == other);
+    }
 
 private:
-    struct RouteInternalData {
-        Weight weight;
-        std::optional<EdgeId> prev_edge;
-    };
-    using RoutesInternalData = std::vector<std::vector<std::optional<RouteInternalData>>>;
 
     void InitializeRoutesInternalData(const Graph& graph) {
         const size_t vertex_count = graph.GetVertexCount();
@@ -119,3 +146,4 @@ std::optional<typename Router<Weight>::RouteInfo> Router<Weight>::BuildRoute(Ver
 }
 
 }  // namespace graph
+

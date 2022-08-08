@@ -154,7 +154,7 @@ void Document::AddPtr(std::unique_ptr<Object>&& obj) {
 
 void Document::Render(std::ostream& out) const {
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << endl;
-    out << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">" << endl;
+    out << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"300\" height=\"300\">" << endl;
     for (const auto& obj : objects_) {
         obj->Render(out);
     }
